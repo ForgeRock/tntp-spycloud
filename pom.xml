@@ -32,6 +32,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <forgerockDistMgmtReleasesUrl>https://maven.forgerock.org/artifactory/internal-releases</forgerockDistMgmtReleasesUrl>
     </properties>
 
     <build>
@@ -43,6 +44,13 @@
             </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>forgerock-internal-releases</id>
+            <name>ForgeRock Internal Release Repository</name>
+            <url>https://maven.forgerock.org/artifactory/internal-releases</url>
+        </repository>
+    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
@@ -91,7 +99,23 @@
             </snapshots>
             <id>forgerock-private-releases</id>
             <name>ForgeRock Private Release Repository</name>
-            <url>https://maven.forgerock.org/artifactory/private-releases</url>
+            <url>https://maven.forgerock.org/repo/private-releases</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>forgerock-internal-releases</id>
+            <name>ForgeRock Internal Release Repository</name>
+            <url>https://maven.forgerock.org/artifactory/internal-releases</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>forgerock-internal-snapshots</id>
+            <name>ForgeRock Internal Snapshots Repository</name>
+            <url>https://maven.forgerock.org/artifactory/internal-snapshots</url>
         </repository>
     </repositories>
 
