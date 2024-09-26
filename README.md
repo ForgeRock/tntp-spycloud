@@ -11,32 +11,29 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2024 ForgeRock AS.
+ * Copyright 2019 ForgeRock AS.
 -->
-# spycloudAuthNode
+# Spycloud Auth Nodes
 
-A simple authentication node for ForgeRock's [Identity Platform][forgerock_platform] 7.5.0 and above. This node... **SHORT DESCRIPTION HERE**
+An authentication node for ForgeRock's AM Platform 7.5.0 and ForgeRock Identity Cloud which integrates the Spycloud service with AM.
 
+## Usage
 
-Copy the .jar file from the ../target directory into the ../web-container/webapps/openam/WEB-INF/lib directory where AM is deployed.  Restart the web container to pick up the new node.  The node will then appear in the authentication trees components palette.
+To deploy these nodes, download the jar from the releases tab on github
+[here](https://github.com/ForgeRock/tntp-spycloud/releases). Next, copy the jar into the
+../web-container/webapps/openam/WEB-INF/lib directory where AM is deployed. Restart the web container to pick up the
+new node. The node will then appear in the authentication trees components palette.
 
+If you'd like to build the integration from source, the code in this repository has binary dependencies that live in
+the ForgeRock maven repository. Maven can be configured to authenticate to this repository by following the
+following [ForgeRock Knowledge Base Article](https://backstage.forgerock.com/knowledge/kb/article/a74096897).
 
-**USAGE HERE**
+### SpyCloud node configuration
+This node calls the SpyCloud service to determine of a password has been compromised for that username or email.
+* **API URL** - The API URL for spycloud API
+* **API Key** - The API key for spycloud API
+* **Severity** - Severity to filter on
+* **Username or Email** - Determine if the node should be used to check usernames or emails
 
-
-The code in this repository has binary dependencies that live in the ForgeRock maven repository. Maven can be configured to authenticate to this repository by following the following [ForgeRock Knowledge Base Article](https://backstage.forgerock.com/knowledge/kb/article/a74096897).
-
-**SPECIFIC BUILD INSTRUCTIONS HERE**
-
-**SCREENSHOTS ARE GOOD LIKE BELOW**
-
-![ScreenShot](./example.png)
-
-        
-The sample code described herein is provided on an "as is" basis, without warranty of any kind, to the fullest extent permitted by law. ForgeRock does not warrant or guarantee the individual success developers may have in implementing the sample code on their development platforms or in production configurations.
-
-ForgeRock does not warrant, guarantee or make any representations regarding the use, results of use, accuracy, timeliness or completeness of any data or information relating to the sample code. ForgeRock disclaims all warranties, expressed or implied, and in particular, disclaims all warranties of merchantability, and warranties related to the code, or any service or software related thereto.
-
-ForgeRock shall not be liable for any direct, indirect or consequential damages or costs of any type arising out of any action taken by you or others related to the sample code.
 
 [forgerock_platform]: https://www.forgerock.com/platform/  
