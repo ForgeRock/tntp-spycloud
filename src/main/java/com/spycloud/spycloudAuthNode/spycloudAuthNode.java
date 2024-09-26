@@ -44,6 +44,7 @@ import org.forgerock.openam.auth.node.api.NodeState;
 import org.forgerock.openam.auth.node.api.OutputState;
 import org.forgerock.openam.auth.node.api.TreeContext;
 import org.forgerock.openam.core.realms.Realm;
+import org.opends.server.extensions.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ import org.json.JSONArray;
  * A node that checks to see if zero-page login headers have specified username and whether that username is in a group
  * permitted to use zero-page login headers.
  */
-@Node.Metadata(outcomeProvider  = AbstractDecisionNode.OutcomeProvider.class,
+@Node.Metadata(outcomeProvider  = spycloudAuthNode.OutcomeProvider.class,
                configClass      = spycloudAuthNode.Config.class)
 public class spycloudAuthNode extends AbstractDecisionNode {
 
@@ -76,9 +77,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
     private final Realm realm;
     private String username = null;
     private String loggerPrefix = "[SpyCloud]";
-    static final String SUCCESS_OUTCOME = "True";
-    static final String ERROR_OUTCOME = "Error";
-    static final String FAILURE_OUTCOME = "False";
+   
 
     /**
      * Configuration for the node.
@@ -103,6 +102,16 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         default String apiKey() {
             return "";
         }
+
+        @Attribute(order = 400)
+        default String severity() {
+            return "25";
+        }
+
+        @Attribute(order = 500)
+        default UsernameOrEmail usernameOrEmail() {
+            return UsernameOrEmail.email;
+        }
     }
 
 
@@ -124,6 +133,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         try {
 
             NodeState ns = context.getStateFor(this);
+            String salt = "1234567890";
             HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
             HttpRequest.Builder requestBuilder;
 
@@ -131,17 +141,33 @@ public class spycloudAuthNode extends AbstractDecisionNode {
 
             requestBuilder.header("X-API-KEY", config.apiKey());
             requestBuilder.header("accept", "application/json");
-            String mail = null;
-            if(ns.get("objectAttributes") != null && ns.get("objectAttributes").get("mail") != null) {
-                mail = ns.get("objectAttributes").get("mail").asString();
+
+            String identifier = null;
+            switch (config.usernameOrEmail()) {
+                case email: {
+                    if (ns.get("objectAttributes") != null && ns.get("objectAttributes").get("mail") != null) {
+                        identifier = ns.get("objectAttributes").get("mail").asString();
+                    }
+                    break;
+                }
+                case username: {
+                    if (ns.get("username") != null) {
+                        identifier = ns.get("username").asString();
+                    }
+
+                }
+                break;
             }
-            HttpRequest request = requestBuilder.uri(URI.create(config.apiUrl() + mail)).timeout(Duration.ofSeconds(60)).build();
+
+
+            HttpRequest request = requestBuilder.uri(URI.create(config.apiUrl() + identifier +"?salt="+salt +"&severity="+config.severity())).timeout(Duration.ofSeconds(60)).build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject jo = new JSONObject(response.body());
             JSONArray arr = jo.getJSONArray("results");
             String password = ns.get("password").asString();
+
             for (int i = 0 ; i < arr.length(); i++) {
                 JSONObject obj = arr.getJSONObject(i);
                 if(obj.has("password_type")) {
@@ -152,19 +178,27 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                         logger.error(pass);
                         logger.error(password);
                         if (pass.equals(password)) {
-                            return Action.goTo(FAILURE_OUTCOME).build();
+                            return Action.goTo("False").build();
+                        }
+                    }
+                    else if (password_type.equals("bcrypt")) {
+
+                        String pass = obj.getString("password");
+                        String password1 = BCrypt.hashpw(password, salt);
+                        if (pass.equals(password1)) {
+                            return Action.goTo("False").build();
                         }
                     }
                 }
             }
-            return Action.goTo(SUCCESS_OUTCOME).build();
+            return Action.goTo("True").build();
             
         } catch(Exception ex) { 
             String stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(ex);
             logger.error(loggerPrefix + "Exception occurred: " + stackTrace);
             context.getStateFor(this).putTransient(loggerPrefix + "Exception", new Date() + ": " + ex.getMessage());
             context.getStateFor(this).putTransient(loggerPrefix + "StackTrace", new Date() + ": " + stackTrace);
-            return Action.goTo(ERROR_OUTCOME).build();
+            return Action.goTo("Error").build();
 
         }
     }
@@ -174,6 +208,9 @@ public class spycloudAuthNode extends AbstractDecisionNode {
          * Outcomes Ids for this node.
          */
         
+         static final String SUCCESS_OUTCOME = "True";
+    static final String ERROR_OUTCOME = "Error";
+    static final String FAILURE_OUTCOME = "False";
         private static final String BUNDLE = spycloudAuthNode.class.getName();
 
         @Override
@@ -193,14 +230,18 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         }
     }
 
-
-    @Override
-    public InputState[] getInputs() {
-        return new InputState[] {
-                new InputState("username", false),
-                new InputState("password", false)
-        };
+    public enum UsernameOrEmail {
+        username, email
     }
+
+//
+//    @Override
+//    public InputState[] getInputs() {
+//        return new InputState[] {
+//                new InputState("username", false),
+//                new InputState("password", false)
+//        };
+//    }
 
     @Override
     public OutputState[] getOutputs() {
