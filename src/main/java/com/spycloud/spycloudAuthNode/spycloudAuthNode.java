@@ -20,6 +20,8 @@ package com.spycloud.spycloudAuthNode;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.util.*;
+
+import org.apache.commons.lang.RandomStringUtils;
 import org.forgerock.openam.auth.node.api.*;
 import static org.forgerock.json.JsonValue.field;
 import static org.forgerock.json.JsonValue.json;
@@ -112,6 +114,11 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         default UsernameOrEmail usernameOrEmail() {
             return UsernameOrEmail.email;
         }
+
+        @Attribute(order = 600)
+        default boolean salt() {
+            return false;
+        }
     }
 
 
@@ -133,7 +140,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         try {
 
             NodeState ns = context.getStateFor(this);
-            String salt = "1234567890";
+            String salt = RandomStringUtils.randomAlphanumeric(17).toUpperCase();
             HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
             HttpRequest.Builder requestBuilder;
 
@@ -159,8 +166,11 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                 break;
             }
 
-
-            HttpRequest request = requestBuilder.uri(URI.create(config.apiUrl() + identifier +"?salt="+salt +"&severity="+config.severity())).timeout(Duration.ofSeconds(60)).build();
+            String url = config.apiUrl() + identifier +"?severity="+config.severity();
+            if (config.salt()) {
+                url = config.apiUrl() + identifier +"?salt="+salt +"&severity="+config.severity();
+            }
+            HttpRequest request = requestBuilder.uri(URI.create(url)).timeout(Duration.ofSeconds(60)).build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 

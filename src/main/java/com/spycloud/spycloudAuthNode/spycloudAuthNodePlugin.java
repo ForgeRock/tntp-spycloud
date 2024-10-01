@@ -55,7 +55,7 @@ import org.forgerock.openam.plugins.PluginException;
  */
 public class spycloudAuthNodePlugin extends AbstractNodeAmPlugin {
 
-	static private String currentVersion = "1.0.6";
+	static private String currentVersion = "1.0.7";
 	
     /** 
      * Specify the Map of list of node classes that the plugin is providing. These will then be installed and
