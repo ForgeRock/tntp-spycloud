@@ -46,7 +46,6 @@ import org.forgerock.openam.auth.node.api.NodeState;
 import org.forgerock.openam.auth.node.api.OutputState;
 import org.forgerock.openam.auth.node.api.TreeContext;
 import org.forgerock.openam.core.realms.Realm;
-import org.opends.server.extensions.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,11 +113,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         default UsernameOrEmail usernameOrEmail() {
             return UsernameOrEmail.email;
         }
-
-        @Attribute(order = 600)
-        default boolean salt() {
-            return false;
-        }
     }
 
 
@@ -167,9 +161,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             }
 
             String url = config.apiUrl() + identifier +"?severity="+config.severity();
-            if (config.salt()) {
-                url = config.apiUrl() + identifier +"?salt="+salt +"&severity="+config.severity();
-            }
             HttpRequest request = requestBuilder.uri(URI.create(url)).timeout(Duration.ofSeconds(60)).build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -188,14 +179,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                         logger.error(pass);
                         logger.error(password);
                         if (pass.equals(password)) {
-                            return Action.goTo("False").build();
-                        }
-                    }
-                    else if (password_type.equals("bcrypt")) {
-
-                        String pass = obj.getString("password");
-                        String password1 = BCrypt.hashpw(password, salt);
-                        if (pass.equals(password1)) {
                             return Action.goTo("False").build();
                         }
                     }
