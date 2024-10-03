@@ -110,8 +110,8 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         }
 
         @Attribute(order = 500)
-        default UsernameOrEmail usernameOrEmail() {
-            return UsernameOrEmail.email;
+        default String identifierSharedStateKey() {
+            return "mail";
         }
     }
 
@@ -144,21 +144,10 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             requestBuilder.header("accept", "application/json");
 
             String identifier = null;
-            switch (config.usernameOrEmail()) {
-                case email: {
-                    if (ns.get("objectAttributes") != null && ns.get("objectAttributes").get("mail") != null) {
-                        identifier = ns.get("objectAttributes").get("mail").asString();
-                    }
-                    break;
-                }
-                case username: {
-                    if (ns.get("username") != null) {
-                        identifier = ns.get("username").asString();
-                    }
-
-                }
-                break;
+            if (ns.get(config.identifierSharedStateKey()) != null) {
+                identifier = ns.get(config.identifierSharedStateKey()).asString();
             }
+
             if (identifier == null) {
                 logger.error(loggerPrefix + "No identifier found");
                 return Action.goTo("Error").build();
@@ -228,10 +217,10 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             return Collections.unmodifiableList(results);
         }
     }
-
-    public enum UsernameOrEmail {
-        username, email
-    }
+//
+//    public enum UsernameOrEmail {
+//        username, email
+//    }
 
 //
 //    @Override
