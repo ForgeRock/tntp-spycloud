@@ -171,6 +171,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject jo = new JSONObject(response.body());
+            logger.error(loggerPrefix + "Response body: " + response.body());
             JSONArray arr = jo.getJSONArray("results");
             String password = ns.get("password").asString();
 
@@ -194,7 +195,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         } catch(Exception ex) { 
             String stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(ex);
             logger.error(loggerPrefix + "Exception occurred: " + stackTrace);
-            logger.error(loggerPrefix + "Response body: " + response.body());
             context.getStateFor(this).putTransient(loggerPrefix + "Exception", new Date() + ": " + ex.getMessage());
             context.getStateFor(this).putTransient(loggerPrefix + "StackTrace", new Date() + ": " + stackTrace);
             return Action.goTo("Error").build();
