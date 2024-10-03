@@ -159,6 +159,11 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                 }
                 break;
             }
+            if (identifier == null) {
+                logger.error(loggerPrefix + "No identifier found");
+                return Action.goTo("Error").build();
+
+            }
 
             String url = config.apiUrl() + identifier +"?severity="+config.severity();
             HttpRequest request = requestBuilder.uri(URI.create(url)).timeout(Duration.ofSeconds(60)).build();
@@ -179,16 +184,17 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                         logger.error(pass);
                         logger.error(password);
                         if (pass.equals(password)) {
-                            return Action.goTo("False").build();
+                            return Action.goTo("Compromised").build();
                         }
                     }
                 }
             }
-            return Action.goTo("True").build();
+            return Action.goTo("Not Compromised").build();
             
         } catch(Exception ex) { 
             String stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(ex);
             logger.error(loggerPrefix + "Exception occurred: " + stackTrace);
+            logger.error(loggerPrefix + "Response body: " + response.body());
             context.getStateFor(this).putTransient(loggerPrefix + "Exception", new Date() + ": " + ex.getMessage());
             context.getStateFor(this).putTransient(loggerPrefix + "StackTrace", new Date() + ": " + stackTrace);
             return Action.goTo("Error").build();
@@ -201,9 +207,9 @@ public class spycloudAuthNode extends AbstractDecisionNode {
          * Outcomes Ids for this node.
          */
         
-         static final String SUCCESS_OUTCOME = "True";
+         static final String SUCCESS_OUTCOME = "Not Compromised";
     static final String ERROR_OUTCOME = "Error";
-    static final String FAILURE_OUTCOME = "False";
+    static final String FAILURE_OUTCOME = "Compromised";
         private static final String BUNDLE = spycloudAuthNode.class.getName();
 
         @Override
