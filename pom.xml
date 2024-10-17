@@ -23,7 +23,7 @@
     <artifactId>spycloudAuthNode</artifactId>
 
     <groupId>com.spycloud</groupId>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
     <name>Template for an Auth Tree Node maven project</name>
     <description>An Authentication Tree Node for ForgeRock's Identity Platform</description>
 

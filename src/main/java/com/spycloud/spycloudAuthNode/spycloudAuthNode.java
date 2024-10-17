@@ -160,7 +160,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             JSONObject jo = new JSONObject(response.body());
-            logger.error(loggerPrefix + "Response body: " + response.body());
             JSONArray arr = jo.getJSONArray("results");
             String password = ns.get("password").asString();
 
@@ -171,8 +170,6 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                     if (password_type.equals("plaintext")) {
 
                         String pass = obj.getString("password");
-                        logger.error(pass);
-                        logger.error(password);
                         if (pass.equals(password)) {
                             return Action.goTo("Compromised").build();
                         }
