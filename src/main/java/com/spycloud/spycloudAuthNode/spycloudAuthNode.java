@@ -72,7 +72,6 @@ import org.json.JSONArray;
                configClass      = spycloudAuthNode.Config.class)
 public class spycloudAuthNode extends AbstractDecisionNode {
 
-    private final Pattern DN_PATTERN = Pattern.compile("^[a-zA-Z0-9]=([^,]+),");
     private final Logger logger = LoggerFactory.getLogger(spycloudAuthNode.class);
     private final Config config;
     private final Realm realm;
