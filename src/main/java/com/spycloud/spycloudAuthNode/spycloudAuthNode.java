@@ -112,6 +112,12 @@ public class spycloudAuthNode extends AbstractDecisionNode {
         default String identifierSharedStateKey() {
             return "mail";
         }
+        @Attribute(order = 600)
+        default Integer timeout() {
+            return 60;
+        }
+
+       
     }
 
 
@@ -134,7 +140,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
 
             NodeState ns = context.getStateFor(this);
             String salt = RandomStringUtils.randomAlphanumeric(17).toUpperCase();
-            HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
+            HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(config.timeout())).build();
             HttpRequest.Builder requestBuilder;
 
             requestBuilder = HttpRequest.newBuilder().GET();
@@ -152,11 +158,18 @@ public class spycloudAuthNode extends AbstractDecisionNode {
                 return Action.goTo("Error").build();
 
             }
-
             String url = config.apiUrl() + identifier +"?severity="+config.severity();
-            HttpRequest request = requestBuilder.uri(URI.create(url)).timeout(Duration.ofSeconds(60)).build();
-
+            HttpRequest request = requestBuilder.uri(URI.create(url)).timeout(Duration.ofSeconds(config.timeout())).build();
+            logger.debug(loggerPrefix + "Sending HTTP GET request to: " + url);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            	
+            logger.info(loggerPrefix + "Received HTTP response. Status Code: " + response.statusCode());
+            logger.debug(loggerPrefix + "HTTP Response Body: " + response.body());
+            if (response.statusCode() != 200) {
+                logger.error(loggerPrefix + "Non-OK response received: " + response.statusCode());
+                logger.error(loggerPrefix + "HTTP Response Body: " + response.body());
+                return Action.goTo("Error").build();
+            }
 
             JSONObject jo = new JSONObject(response.body());
             JSONArray arr = jo.getJSONArray("results");
@@ -213,19 +226,7 @@ public class spycloudAuthNode extends AbstractDecisionNode {
             return Collections.unmodifiableList(results);
         }
     }
-//
-//    public enum UsernameOrEmail {
-//        username, email
-//    }
 
-//
-//    @Override
-//    public InputState[] getInputs() {
-//        return new InputState[] {
-//                new InputState("username", false),
-//                new InputState("password", false)
-//        };
-//    }
 
     @Override
     public OutputState[] getOutputs() {
