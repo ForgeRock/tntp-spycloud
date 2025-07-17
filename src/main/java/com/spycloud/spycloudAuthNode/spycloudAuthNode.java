@@ -69,7 +69,8 @@ import org.json.JSONArray;
  * permitted to use zero-page login headers.
  */
 @Node.Metadata(outcomeProvider  = spycloudAuthNode.OutcomeProvider.class,
-               configClass      = spycloudAuthNode.Config.class)
+               configClass      = spycloudAuthNode.Config.class, tags = {
+        "marketplace", "trustnetwork" })
 public class spycloudAuthNode extends AbstractDecisionNode {
 
     private final Logger logger = LoggerFactory.getLogger(spycloudAuthNode.class);
